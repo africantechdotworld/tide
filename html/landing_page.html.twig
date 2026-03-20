@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VeltraHost — High Performance Cloud VPS Hosting</title>
+    <link rel="shortcut icon" href="{{ 'favicon.ico' | asset_url }}">
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
@@ -137,7 +138,7 @@
 <body>
 
 <nav>
-    <div class="logo">Veltra<span>Host</span></div>
+    <div class="logo" style="display:flex; align-items:center; gap:0.5rem;"><img src="{{ 'img/veltrahost.png' | asset_url }}" alt="Logo" style="height:26px; width:auto;">Veltra<span>Host</span></div>
     <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
@@ -185,7 +186,7 @@
             <div class="browser-dot" style="background:#ff5f57"></div>
             <div class="browser-dot" style="background:#ffbd2e"></div>
             <div class="browser-dot" style="background:#28c840"></div>
-            <div class="browser-url">ssh root@178.104.12.146 -p 2101</div>
+            <div class="browser-url">ssh root@123.456.78.9 -p 2101</div>
         </div>
         <div class="terminal">
             <div><span class="t-dim">Last login: Wed Mar 18 10:07:05 2026</span></div>
@@ -439,10 +440,10 @@
         </div>
         <div class="footer-col">
             <h4>Legal</h4>
-            <a href="{{ 'page/terms'|link }}">Terms of Service</a>
-            <a href="{{ 'page/privacy'|link }}">Privacy Policy</a>
-            <a href="{{ 'page/acceptable-use'|link }}">Acceptable Use</a>
-            <a href="{{ 'page/refund'|link }}">Refund Policy</a>
+            <a href="{{ '/tos'|link }}">Terms of Service</a>
+            <a href="{{ '/privacy-policy'|link }}">Privacy Policy</a>
+            <a href="{{ '/acceptable-use-policy'|link }}">Acceptable Use</a>
+            <a href="{{ '/refund-policy'|link }}">Refund Policy</a>
         </div>
     </div>
     <div class="footer-bottom">
