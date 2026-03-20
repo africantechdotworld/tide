@@ -6,6 +6,10 @@
     <title>VeltraHost — High Performance Cloud VPS Hosting</title>
     <link rel="shortcut icon" href="{{ 'favicon.ico' | asset_url }}">
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         :root{
@@ -13,6 +17,21 @@
             --gray:#f8fafc;--gray2:#f1f5f9;--gray3:#e2e8f0;--gray4:#94a3b8;--gray5:#64748b;--gray6:#334155;--gray7:#0f172a;
             --white:#ffffff;--radius:14px;--radius-sm:8px;
         }
+        [data-theme="dark"] {
+            --blue:#3b82f6;--blue-light:#1e3a8a;--blue-mid:#1e40af;--blue-dark:#60a5fa;--blue-text:#93c5fd;
+            --gray:#0f172a;--gray2:#1e293b;--gray3:#334155;--gray4:#64748b;--gray5:#94a3b8;--gray6:#cbd5e1;--gray7:#f1f5f9;
+            --white:#020617;
+        }
+        [data-theme="dark"] nav{background:rgba(2,6,23,0.95)}
+        [data-theme="dark"] .hero-bg{background:radial-gradient(ellipse 80% 60% at 50% -10%,#1e3a8a 0%,transparent 70%)}
+        [data-theme="dark"] .browser-bar{background:#0f172a; border-bottom-color:#1e293b;}
+        [data-theme="dark"] .browser-url{background:#1e293b; border-color:#334155; color:#94a3b8;}
+        [data-theme="dark"] .terminal{background:#000000; border:1px solid #1e293b; border-top:none;}
+        [data-theme="dark"] .plan-btn-outline:hover{background:#1e3a8a; color:#fff; border-color:#3b82f6;}
+        
+        .theme-toggle { background:transparent; border:none; cursor:pointer; color:var(--gray5); display:inline-flex; align-items:center; gap:0.5rem; padding:0.4rem 0.75rem; border-radius:var(--radius-sm); font-family:'Instrument Sans', sans-serif; font-size:0.8rem; font-weight:500; transition:all 0.15s; border:1px solid var(--gray3); }
+        .theme-toggle:hover { color:var(--gray7); border-color:var(--gray4); background:var(--gray2); }
+        .theme-toggle svg { width:16px; height:16px; }
         body{background:var(--white);color:var(--gray7);font-family:'Instrument Sans',sans-serif;line-height:1.6;overflow-x:hidden}
         h1,h2,h3,h4,.logo{font-family:'Bricolage Grotesque',sans-serif}
         a{text-decoration:none;color:inherit}
@@ -138,7 +157,7 @@
 <body>
 
 <nav>
-    <div class="logo" style="display:flex; align-items:center; gap:0.5rem;"><img src="{{ 'img/veltrahost.png' | asset_url }}" alt="Logo" style="height:26px; width:auto;">Veltra<span>Host</span></div>
+    <div class="logo" style="display:flex; align-items:center; gap:0.5rem;"><img src="{{ 'img/veltrahost.png' | asset_url }}" alt="Logo" style="height:26px; width:auto;"><span>Veltra<span>Host</span></span></div>
     <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
@@ -448,14 +467,44 @@
     </div>
     <div class="footer-bottom">
         <p>&#169; {{ "now"|date("Y") }} VeltraHost. All rights reserved.</p>
-        <div style="display:flex;align-items:center;gap:0.75rem">
-            <div class="uptime-bar">
+        <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle themes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+                <span>Theme</span>
+            </button>
+            <div style="display:flex;align-items:center;gap:0.75rem">
+                <div class="uptime-bar">
                 <div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg"></div><div class="uptime-seg x"></div><div class="uptime-seg"></div>
             </div>
             <span style="font-size:0.75rem;color:#475569">99.9% uptime</span>
         </div>
     </div>
 </footer>
+
+<script>
+    function toggleTheme() {
+        const doc = document.documentElement;
+        const isDark = doc.getAttribute('data-theme') === 'dark';
+        const newTheme = isDark ? 'light' : 'dark';
+        doc.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateToggleIcon(newTheme);
+    }
+    
+    function updateToggleIcon(theme) {
+        const svg = document.querySelector('.theme-toggle svg');
+        if (!svg) return;
+        if (theme === 'dark') {
+            svg.innerHTML = '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+        } else {
+            svg.innerHTML = '<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        updateToggleIcon(document.documentElement.getAttribute('data-theme') || 'light');
+    });
+</script>
 
 </body>
 </html>
