@@ -45,7 +45,7 @@
 
         nav{background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--gray3);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:68px;position:sticky;top:0;z-index:100}
         .logo{font-size:1.45rem;font-weight:800;color:#000000;letter-spacing:-0.5px}
-        .logo span{color:var(--blue)}
+        .logo span.blue-text{color:var(--blue)}
         .nav-links{display:flex;gap:2rem;align-items:center}
         .nav-links a{font-size:0.875rem;color:var(--gray5);font-weight:500;transition:color 0.15s}
         .nav-links a:hover{color:var(--blue)}
@@ -96,7 +96,7 @@
         .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:1.25rem;margin-top:3rem}
         .plan{background:var(--white);border:1.5px solid var(--gray3);border-radius:var(--radius);padding:2rem;position:relative;transition:border-color 0.15s}
         .plan.featured{border-color:var(--blue);box-shadow:0 0 0 4px rgba(26,86,219,0.07)}
-        .plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:var(--white);padding:0.25rem 1rem;border-radius:100px;font-size:0.7rem;font-weight:700;font-family:'Bricolage Grotesque',sans-serif;white-space:nowrap;letter-spacing:0.04em}
+        .plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:#ffffff;padding:0.25rem 1rem;border-radius:100px;font-size:0.7rem;font-weight:700;font-family:'Bricolage Grotesque',sans-serif;white-space:nowrap;letter-spacing:0.04em}
         .plan-tier{font-size:0.72rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;font-family:'Bricolage Grotesque',sans-serif}
         .plan-price{margin-bottom:0.4rem}
         .plan-price .dollar{font-size:1.1rem;font-weight:700;color:var(--gray7);vertical-align:top;line-height:2.2;font-family:'Bricolage Grotesque',sans-serif}
@@ -164,7 +164,7 @@
 <body>
 
 <nav>
-    <div class="logo" style="display:flex; align-items:center; gap:0.5rem;"><img src="{{ 'img/veltrahost.png' | asset_url }}" alt="Logo" style="height:26px; width:auto;"><span>Veltra<span>Host</span></span></div>
+    <div class="logo" style="display:flex; align-items:center; gap:0.5rem;"><img src="{{ 'img/veltrahost.png' | asset_url }}" alt="Logo" style="height:26px; width:auto;"><span>Veltra<span class="blue-text">Host</span></span></div>
     <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
