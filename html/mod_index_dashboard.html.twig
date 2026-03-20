@@ -1,38 +1,27 @@
-{% extends request.ajax ? "layout_blank.html.twig" : "layout_default.html.twig" %}
-
-{% block meta_title %}{{ 'Dashboard'|trans }}{% endblock %}
-{% block page_header %}{{ 'Dashboard'|trans }}{% endblock %}
-
-{% block body_class %}dashboard{% endblock %}
-{% block breadcrumbs %}
-    {% if not settings.hide_dashboard_breadcrumb %}
-        <ul class="breadcrumb">
-            <li><a href="{{ '/'|link }}">{{ 'Home'|trans }}</a> <span class="dropdown-divider">/</span></li>
-            <li class="active">{{ 'Dashboard'|trans }}</li>
-        </ul>
-    {% endif %}
-{% endblock %}
+{% extends client ? (request.ajax ? "layout_blank.html.twig" : "layout_default.html.twig") : "landing_page.html.twig" %}
 
 {% import "macro_functions.html.twig" as mf %}
 
-{% block content %}
-    {% if settings.showcase_enabled %}
-    <div class="row row-deck row-cards mb-3">
-       <div class="col-md-12">
-          <div class="card card-sm">
-             <div class="card-status-top bg-{% if settings.theme_color == 1 %}primary{% elseif settings.theme_color == 2 %}purple{% elseif settings.theme_color == 3 %}pink{% elseif settings.theme_color == 4 %}red{% elseif settings.theme_color == 5 %}orange{% elseif settings.theme_color == 6 %}yellow{% elseif settings.theme_color == 7 %}green{% elseif settings.theme_color == 8 %}teal{% else %}indigo{% endif %}"></div>
-             <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-center text-center text-md-start">
-                <div class="mt-3">{{ settings.showcase_text |markdown }}</div>
-                {% if (settings.showcase_button_url) and (settings.showcase_button_title) %}
-                <a class="btn btn-{% if settings.theme_color == 1 %}primary{% elseif settings.theme_color == 2 %}purple{% elseif settings.theme_color == 3 %}pink{% elseif settings.theme_color == 4 %}red{% elseif settings.theme_color == 5 %}orange{% elseif settings.theme_color == 6 %}yellow{% elseif settings.theme_color == 7 %}green{% elseif settings.theme_color == 8 %}teal{% else %}indigo{% endif %}" href="{{ settings.showcase_button_url }}">{{ settings.showcase_button_title }}</a>
-                {% endif %}
-             </div>
-          </div>
-       </div>
-    </div>
-    {% endif %}
+{% block meta_title %}{{ client ? 'Dashboard'|trans : 'VeltraHost — Premium VPS Hosting' }}{% endblock %}
 
+{% block content %}
     {% if client %}
+        {% if settings.showcase_enabled %}
+        <div class="row row-deck row-cards mb-3">
+           <div class="col-md-12">
+              <div class="card card-sm">
+                 <div class="card-status-top bg-{% if settings.theme_color == 1 %}primary{% elseif settings.theme_color == 2 %}purple{% elseif settings.theme_color == 3 %}pink{% elseif settings.theme_color == 4 %}red{% elseif settings.theme_color == 5 %}orange{% elseif settings.theme_color == 6 %}yellow{% elseif settings.theme_color == 7 %}green{% elseif settings.theme_color == 8 %}teal{% else %}indigo{% endif %}"></div>
+                 <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-center text-center text-md-start">
+                    <div class="mt-3">{{ settings.showcase_text |markdown }}</div>
+                    {% if (settings.showcase_button_url) and (settings.showcase_button_title) %}
+                    <a class="btn btn-{% if settings.theme_color == 1 %}primary{% elseif settings.theme_color == 2 %}purple{% elseif settings.theme_color == 3 %}pink{% elseif settings.theme_color == 4 %}red{% elseif settings.theme_color == 5 %}orange{% elseif settings.theme_color == 6 %}yellow{% elseif settings.theme_color == 7 %}green{% elseif settings.theme_color == 8 %}teal{% else %}indigo{% endif %}" href="{{ settings.showcase_button_url }}">{{ settings.showcase_button_title }}</a>
+                    {% endif %}
+                 </div>
+              </div>
+           </div>
+        </div>
+        {% endif %}
+
         {% set tickets = client.support_ticket_get_list({ "status": 'on_hold' }) %}
         {% if tickets.total > 0 %}
             <div class="row">
@@ -250,222 +239,5 @@
                 </div>
             </div>
         </div>
-    {% else %}
-        {% set cardCount = 2 %}
-        {% if guest.extension_is_on({"mod":"news"}) %}{% set cardCount = cardCount + 1 %}{% endif %}
-        {% if guest.support_kb_enabled() %}{% set cardCount = cardCount + 1 %}{% endif %}
-
-        {% set rowClass = '' %}
-        {% set colClass = 'col-12 col-sm-6 col-md-4 col-lg-3' %}
-
-        {% if cardCount == 3 %}
-          {% set colClass = 'col-12 col-sm-6 col-md-4 col-lg-4' %}
-        {% elseif cardCount == 2 %}
-          {% set colClass = 'col-12 col-sm-6 col-md-4 col-lg-4' %}
-          {% set rowClass = 'justify-content-center' %}
-        {% elseif cardCount == 1 %}
-          {% set colClass = 'col-12 col-sm-8 col-md-6 col-lg-6' %}
-          {% set rowClass = 'justify-content-center' %}
-        {% endif %}
-        
-        {% include 'custom/dashboard.top.twig' ignore missing %}
-
-        <div class="row row-cards {{ rowClass }}">
-            {% set domainProducts = guest.product_get_list({ "type": "domain" }) %}
-            {% if domainProducts.list|length > 0 %}
-            <div class="card">
-                <div class="card-body" id="register">
-                    <form id="domain-search-transfer-form">
-                        <div class="row g-2 mb-3">
-                            <div class="col-12 col-md-8">
-                                <input type="text" class="form-control form-control-lg" placeholder="Enter your domain name" aria-label="Domain Name" name="domain_name" value="{{ request.domain_name }}" autocapitalize="none" required>
-                            </div>
-                            <div class="col-12 col-md-4 d-flex gap-2">
-                                <button class="btn btn-primary btn-lg w-100 w-md-auto flex-fill flex-md-grow-0" type="button" id="domain-check">{{ 'Search'|trans }}</button>
-                            </div>
-                        </div>
-                        <p class="text-muted text-center mt-4" id="info-text">Search for your perfect domain name.</p>
-                        {% set domainProduct = (domainProducts.list|first) %}
-                        {% set pricing = domainProduct.pricing ?? {} %}
-                        {% set currency = guest.cart_get_currency %}
-
-                        {% set chips = pricing
-                          |filter(item => (item.active ?? 0) == 1)
-                          |sort((a, b) => a.tld <=> b.tld)
-                          |slice(0, 8)
-                        %}
-
-                        {% if chips|length > 0 %}
-                          <div class="mt-4">
-                            <div class="d-flex flex-wrap gap-3 justify-content-center">
-                              {% set colors = ['azure', 'indigo', 'purple', 'pink', 'teal', 'green', 'orange'] %}
-                              {% for item in chips %}
-                                {% set color = colors[loop.index0 % colors|length] %}
-                                <div class="btn btn-light" style="pointer-events:none;">
-                                  <span class="fw-bold" style="letter-spacing:-0.01em;">{{ item.tld }}</span>
-                                  <span class="badge bg-{{ color }} text-{{ color }}-fg ms-2">
-                                    {{ currency.format|replace({
-                                      '{{price}}': (item.price_registration * currency.conversion_rate)
-                                        |number_format(2, '.', ',')
-                                    }) }}
-                                  </span>
-                                </div>
-                              {% endfor %}
-                            </div>
-                          </div>
-                        {% endif %}
-                    </form>
-                </div>
-            </div>
-            {% endif %}
-
-            {% include 'custom/dashboard.widgets.twig' ignore missing %}
-
-            <div class="{{ colClass }} d-flex">
-                <div class="card bg-red text-red-fg d-print-none h-100 w-100">
-                    <div class="card-stamp">
-                        <div class="card-stamp-icon bg-white text-red">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                                <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                                <path d="M17 17h-11v-14h-2"></path>
-                                <path d="M6 5l14 1l-1 7h-13"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h2>{{ 'Order'|trans }}</h2>
-                        <p>{{ 'Order new products and services'|trans }}</p>
-                        <div class="row">
-                            <div class="mt-2">
-                                <a href="{{ '/order'|link }}" class="btn btn-outline-light w-100">
-                                {{ 'Order'|trans }}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="{{ colClass }} d-flex">
-                <div class="card bg-azure text-azure-fg d-print-none h-100 w-100">
-                    <div class="card-stamp">
-                        <div class="card-stamp-icon bg-white text-azure">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path>
-                                <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h2>{{ 'Profile'|trans }}</h2>
-                        <p>{{ 'You are logged out'|trans }}</p>
-                        <div class="row g-2 mt-2">
-                          <div class="col-6">
-                            <a href="{{ '/login'|link }}" class="btn btn-outline-light w-100">
-                              {{ 'Login'|trans }}
-                            </a>
-                          </div>
-                          <div class="col-6">
-                            <a href="{{ '/signup'|link }}" class="btn btn-outline-light w-100">
-                              {{ 'Register'|trans }}
-                            </a>
-                          </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% if guest.extension_is_on({"mod":"news"}) %}
-            <div class="{{ colClass }} d-flex">
-                <div class="card bg-green text-green-fg d-print-none h-100 w-100">
-                    <div class="card-stamp">
-                        <div class="card-stamp-icon bg-white text-green">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                <path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1 -4 0v-13a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v12a3 3 0 0 0 3 3h11"></path>
-                                <path d="M8 8l4 0"></path>
-                                <path d="M8 12l4 0"></path>
-                                <path d="M8 16l4 0"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h2>{{ 'News'|trans }}</h2>
-                        <p>{{ 'Latest news and announcements' | trans }}</p>
-                        <div class="row">
-                            <div class="mt-2">
-                                <a href="{{ '/news'|link }}" class="btn btn-outline-light w-100">
-                                {{ 'Announcements'|trans }}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-            {% if guest.support_kb_enabled() %}
-            <div class="{{ colClass }} d-flex">
-                <div class="card bg-indigo text-azure-fg d-print-none h-100 w-100">
-                    <div class="card-stamp">
-                        <div class="card-stamp-icon bg-white text-azure">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h2>{{ 'Knowledge Base'|trans }}</h2>
-                        <p>{{ 'Find answers to frequent questions' | trans }}</p>
-                        <div class="row">
-                            <div class="mt-2">
-                                <a href="{{ '/support/kb'|link }}" class="btn btn-outline-light w-100">
-                                {{ 'Knowledge Base'|trans }}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-
-        {% include 'custom/dashboard.bottom.twig' ignore missing %}
-
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const btn   = document.getElementById("domain-check");
-        const input = document.querySelector('input[name="domain_name"]');
-        const form  = document.getElementById("domain-search-transfer-form");
-
-        if (!input || !form) return;
-
-        function handleSubmit() {
-
-            const domain = input.value.trim();
-
-            if (!domain) {
-                alert("Please enter a domain name");
-                return;
-            }
-
-            sessionStorage.setItem("namingo_domain", domain);
-
-            window.location.href = "/orderbutton?order=1";
-        }
-
-        if (btn) {
-            btn.addEventListener("click", function (e) {
-                e.preventDefault();
-                handleSubmit();
-            });
-        }
-
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
-            handleSubmit();
-        });
-
-    });
-    </script>
     {% endif %}
 {% endblock %}
