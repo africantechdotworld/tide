@@ -1,14 +1,11 @@
-{% set is_authenticated = (client is defined and client is not empty) or guest.client_logged_in %}
-{% extends is_authenticated ? (request.ajax ? "layout_blank.html.twig" : "layout_default.html.twig") : "landing_page.html.twig" %}
+{% extends client ? (request.ajax ? "layout_blank.html.twig" : "layout_default.html.twig") : "landing_page.html.twig" %}
 
 {% import "macro_functions.html.twig" as mf %}
 
-{% block meta_title %}{{ is_authenticated ? 'Dashboard'|trans : 'VeltraHost — Premium VPS Hosting' }}{% endblock %}
+{% block meta_title %}{{ client ? 'Dashboard'|trans : 'VeltraHost — Premium VPS Hosting' }}{% endblock %}
 
 {% block content %}
-    {% if is_authenticated %}
-        {# Ensure client and profile are available even if not passed by controller #}
-        {% set client = client | default(guest.client_get) %}
+    {% if client %}
         {% set profile = profile | default(client.profile_get) %}
         
         {% if settings.showcase_enabled %}
