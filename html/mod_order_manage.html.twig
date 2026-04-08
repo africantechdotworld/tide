@@ -141,20 +141,19 @@
                     </div>
                 </div>
                 <div class="card-footer bg-light py-2 small text-muted">
-                    <i class="ti ti-info-circle me-1"></i> Actions take 5-10 seconds to reflect in Proxmox.
+                    <i class="ti ti-info-circle me-1"></i> Please allow up to 10 seconds for actions to sync with our infrastructure.
                 </div>
             </div>
 
             <script>
             document.addEventListener("DOMContentLoaded", function() {
                 const vmid = "{{ vmid }}";
-                const apiBase = "http://178.104.12.146:5000";
-                const apiToken = "VH-MGMT-8829-XQPL-9912"; // Match CLIENT_API_KEY in provision.py
+                const apiProxy = "/vps-proxy.php"; // Point to your secure PHP proxy
                 const statusBadge = document.getElementById('vps-status-badge');
 
                 // Update Status
                 function updateStatus() {
-                    fetch(`${apiBase}/vps-status/${vmid}?token=${apiToken}`)
+                    fetch(`${apiProxy}?vmid=${vmid}`)
                         .then(r => r.json())
                         .then(data => {
                             statusBadge.textContent = data.status.toUpperCase();
@@ -169,17 +168,16 @@
                 document.querySelectorAll('.vps-action').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const action = this.dataset.action;
+                        if (!confirm(`Are you sure you want to ${action} this VPS?`)) return;
+                        
                         this.disabled = true;
-                        fetch(`${apiBase}/vps-action`, {
+                        fetch(apiProxy, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${apiToken}`
-                            },
-                            body: JSON.stringify({ vmid: vmid, action: action })
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: `vmid=${vmid}&action=${action}`
                         }).then(() => {
-                            FOSSBilling.message(`Action ${action} triggered successfully`);
-                            setTimeout(() => { this.disabled = false; updateStatus(); }, 5000);
+                            FOSSBilling.message(`Request to ${action} VPS has been sent.`);
+                            setTimeout(() => { this.disabled = false; updateStatus(); }, 8000);
                         });
                     });
                 });
@@ -188,14 +186,13 @@
                 document.getElementById('btn-reset-pw').addEventListener('click', function() {
                     const pw = document.getElementById('new-vps-password').value;
                     if(!pw) { alert("Please enter a new password"); return; }
+                    if(!confirm("This will instantly reboot your VPS to apply changes. Continue?")) return;
+
                     this.disabled = true;
-                    fetch(`${apiBase}/vps-action`, {
+                    fetch(apiProxy, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${apiToken}`
-                        },
-                        body: JSON.stringify({ vmid: vmid, action: "reset-pw", password: pw })
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: `vmid=${vmid}&action=reset-pw&password=${encodeURIComponent(pw)}`
                     }).then(() => {
                         FOSSBilling.message("Root password updated successfully");
                         document.getElementById('new-vps-password').value = "";
