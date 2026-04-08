@@ -248,6 +248,15 @@
                             </div>
                             <div class="col-auto text-secondary small font-weight-medium" style="width: 50px; text-align: right;" id="text-mem">0%</div>
                         </div>
+                        <div class="row align-items-center mt-2">
+                            <div class="col-4 col-sm-2 text-secondary small font-weight-medium">Disk Usage</div>
+                            <div class="col">
+                                <div class="progress progress-sm">
+                                    <div class="progress-bar bg-orange" id="bar-disk" style="width: 0%" role="progressbar"></div>
+                                </div>
+                            </div>
+                            <div class="col-auto text-secondary small font-weight-medium" style="width: 50px; text-align: right;" id="text-disk">0%</div>
+                        </div>
                     </div>
                 </div>
                 <div class="card-footer bg-light py-2 small text-muted text-center">
@@ -279,12 +288,19 @@
                                 btnReboot.disabled = false;
                                 btnStop.disabled   = false;
                                 
-                                const cpuPct = Math.round(data.cpu * 100) || 0;
+                                const cpuPct = Math.round((data.cpu || 0) * 100) || 0;
                                 const memPct = data.maxmem ? Math.round((data.mem / data.maxmem) * 100) : 0;
+                                const diskPct = data.maxdisk ? Math.round((data.disk / data.maxdisk) * 100) : 0;
+                                
                                 document.getElementById('bar-cpu').style.width = cpuPct + '%';
                                 document.getElementById('text-cpu').textContent = cpuPct + '%';
+                                
                                 document.getElementById('bar-mem').style.width = memPct + '%';
                                 document.getElementById('text-mem').textContent = memPct + '%';
+                                
+                                document.getElementById('bar-disk').style.width = diskPct + '%';
+                                document.getElementById('text-disk').textContent = diskPct + '%';
+                                
                                 document.getElementById('vps-usage-grid').style.display = 'block';
                             } else {
                                 statusBadge.className = "badge bg-warning text-white";
