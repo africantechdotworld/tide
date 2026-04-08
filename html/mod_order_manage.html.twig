@@ -98,6 +98,114 @@
                 </div>
             </div>
 
+            {# VPS Management Card #}
+            {% set vmid = null %}
+            {% if 'VMID:' in order.notes %}
+                {% set vmid = order.notes|split('VMID: ')[1]|split('\n')[0]|trim %}
+            {% endif %}
+
+            {% if vmid %}
+            <div class="card mb-4 border-primary shadow-sm" id="vps-panel">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="ti ti-server me-2"></i>VPS Remote Management</h5>
+                    <span id="vps-status-badge" class="badge bg-light text-primary">Checking...</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary-lt p-3 rounded-3 me-3">
+                                    <i class="ti ti-status-up text-primary fs-2"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">Current VMID</div>
+                                    <div class="h3 mb-0">#{{ vmid }}</div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-success vps-action" data-action="start"><i class="ti ti-player-play me-1"></i>Start</button>
+                                <button class="btn btn-sm btn-warning vps-action" data-action="reboot"><i class="ti ti-refresh me-1"></i>Reboot</button>
+                                <button class="btn btn-sm btn-danger vps-action" data-action="stop"><i class="ti ti-player-stop me-1"></i>Stop</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 border-start-md">
+                            <div class="mb-3">
+                                <label class="form-label small text-secondary">Reset Root Password</label>
+                                <div class="input-group">
+                                    <input type="password" id="new-vps-password" class="form-control form-control-sm" placeholder="New password">
+                                    <button class="btn btn-sm btn-primary" type="button" id="btn-reset-pw">Update</button>
+                                </div>
+                                <div class="form-hint small mt-1">This will instantly overwrite the root password on your VPS.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-2 small text-muted">
+                    <i class="ti ti-info-circle me-1"></i> Actions take 5-10 seconds to reflect in Proxmox.
+                </div>
+            </div>
+
+            <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const vmid = "{{ vmid }}";
+                const apiBase = "http://178.104.12.146:5000";
+                const apiToken = "VH-MGMT-8829-XQPL-9912"; // Match CLIENT_API_KEY in provision.py
+                const statusBadge = document.getElementById('vps-status-badge');
+
+                // Update Status
+                function updateStatus() {
+                    fetch(`${apiBase}/vps-status/${vmid}?token=${apiToken}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            statusBadge.textContent = data.status.toUpperCase();
+                            statusBadge.className = `badge ${data.status === 'running' ? 'bg-success' : 'bg-warning'} text-white`;
+                        })
+                        .catch(() => { statusBadge.textContent = "OFFLINE"; });
+                }
+                updateStatus();
+                setInterval(updateStatus, 15000);
+
+                // Power Actions
+                document.querySelectorAll('.vps-action').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const action = this.dataset.action;
+                        this.disabled = true;
+                        fetch(`${apiBase}/vps-action`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${apiToken}`
+                            },
+                            body: JSON.stringify({ vmid: vmid, action: action })
+                        }).then(() => {
+                            FOSSBilling.message(`Action ${action} triggered successfully`);
+                            setTimeout(() => { this.disabled = false; updateStatus(); }, 5000);
+                        });
+                    });
+                });
+
+                // Reset Password
+                document.getElementById('btn-reset-pw').addEventListener('click', function() {
+                    const pw = document.getElementById('new-vps-password').value;
+                    if(!pw) { alert("Please enter a new password"); return; }
+                    this.disabled = true;
+                    fetch(`${apiBase}/vps-action`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiToken}`
+                        },
+                        body: JSON.stringify({ vmid: vmid, action: "reset-pw", password: pw })
+                    }).then(() => {
+                        FOSSBilling.message("Root password updated successfully");
+                        document.getElementById('new-vps-password').value = "";
+                        this.disabled = false;
+                    });
+                });
+            });
+            </script>
+            {% endif %}
+
             {# Service management #}
             {% if guest.system_template_exists({ 'file': service_partial }) %}
                 {% set service = client.order_service({ 'id': order.id }) %}
