@@ -143,6 +143,55 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row row-cards" id="vps-specs-grid" style="opacity: 0.5;">
+                        <div class="col-6 col-sm-3">
+                            <div class="card card-sm shadow-none border">
+                                <div class="card-body d-flex align-items-center">
+                                    <span class="bg-blue-lt text-blue avatar avatar-sm me-2"><i class="ti ti-cpu"></i></span>
+                                    <div>
+                                        <div class="font-weight-medium small">CPU Cores</div>
+                                        <div class="text-secondary small" id="spec-cpu">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="card card-sm shadow-none border">
+                                <div class="card-body d-flex align-items-center">
+                                    <span class="bg-green-lt text-green avatar avatar-sm me-2"><i class="ti ti-database"></i></span>
+                                    <div>
+                                        <div class="font-weight-medium small">Memory</div>
+                                        <div class="text-secondary small" id="spec-ram">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="card card-sm shadow-none border">
+                                <div class="card-body d-flex align-items-center">
+                                    <span class="bg-orange-lt text-orange avatar avatar-sm me-2"><i class="ti ti-hdd"></i></span>
+                                    <div>
+                                        <div class="font-weight-medium small">Disk space</div>
+                                        <div class="text-secondary small" id="spec-disk">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="card card-sm shadow-none border">
+                                <div class="card-body d-flex align-items-center">
+                                    <span class="bg-purple-lt text-purple avatar avatar-sm me-2"><i class="ti ti-brand-ubuntu"></i></span>
+                                    <div>
+                                        <div class="font-weight-medium small">Operating System</div>
+                                        <div class="text-secondary small" id="spec-os" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-footer bg-light py-2 small text-muted text-center">
                     <i class="ti ti-info-circle me-1"></i> Please allow up to 10 seconds for service actions to sync with our infrastructure.
@@ -181,7 +230,24 @@
                         })
                         .catch(() => { statusBadge.textContent = "OFFLINE"; });
                 }
+
+                // Fetch Specs from DB
+                function fetchSpecs() {
+                    fetch(`${apiProxy}?vmid=${vmid}&action=details`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if(data.status !== "error") {
+                                document.getElementById('spec-cpu').textContent = data.cpu;
+                                document.getElementById('spec-ram').textContent = data.ram;
+                                document.getElementById('spec-disk').textContent = data.disk;
+                                document.getElementById('spec-os').textContent = data.os;
+                                document.getElementById('vps-specs-grid').style.opacity = "1";
+                            }
+                        });
+                }
+
                 updateStatus();
+                fetchSpecs();
                 setInterval(updateStatus, 15000);
 
                 // Power Actions
