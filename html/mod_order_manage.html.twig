@@ -168,6 +168,17 @@
                                 </div>
                                 <div class="form-hint small mt-1">Applying a new password will instantly sync with your system.</div>
                             </div>
+                            
+                            <div class="mb-3 mt-4 pt-3 border-top">
+                                <label class="form-label small text-danger font-weight-bold">System: Reinstall OS</label>
+                                <div class="input-group">
+                                    <select id="reinstall-os-select" class="form-select form-select-sm">
+                                        <option value="" disabled selected>Loading OS options...</option>
+                                    </select>
+                                    <button class="btn btn-sm btn-danger ms-1" type="button" id="btn-reinstall-os">Reinstall</button>
+                                </div>
+                                <div class="form-hint small mt-1 text-danger">Warning: This will permanently erase all data.</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -381,6 +392,65 @@
                         btn.disabled = false;
                     });
                 });
+
+                // Fetch OS List for Reinstall
+                fetch(apiProxy, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `vmid=${vmid}&action=os-list`
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success' && res.data) {
+                        const select = document.getElementById('reinstall-os-select');
+                        select.innerHTML = '<option value="" disabled selected>Select an OS to reinstall...</option>';
+                        res.data.forEach(os => {
+                            const opt = document.createElement('option');
+                            opt.value = os.slug;
+                            opt.textContent = os.name;
+                            select.appendChild(opt);
+                        });
+                    }
+                });
+
+                // Reinstall Logic
+                document.getElementById('btn-reinstall-os').addEventListener('click', function() {
+                    const osSlug = document.getElementById('reinstall-os-select').value;
+                    if (!osSlug) { alert("Please select an operating system first."); return; }
+                    
+                    if (!confirm("WARNING: Reinstalling will permanently ERASE ALL DATA on your VPS. Are you completely sure you want to proceed?")) return;
+                    if (!confirm("FINAL CONFIRMATION: ALL DATA WILL BE LOST. Proceed with Reinstall?")) return;
+
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.textContent = "Reinstalling...";
+                    
+                    FOSSBilling.message("Reinstallation started. This may take a minute or two. Please do not refresh the page...");
+
+                    fetch(apiProxy, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: `vmid=${vmid}&action=reinstall&os_slug=${encodeURIComponent(osSlug)}`
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === 'success') {
+                            alert("Reinstall successful!\\n\\nYour new root password is:\\n" + res.password + "\\n\\nPlease save this password securely.");
+                            FOSSBilling.message("VPS reinstalled successfully.");
+                            setTimeout(() => window.location.reload(), 2000);
+                        } else {
+                            alert("Reinstall failed: " + res.message);
+                            btn.disabled = false;
+                            btn.textContent = "Reinstall";
+                        }
+                    })
+                    .catch(e => {
+                        alert("An error occurred during reinstallation.");
+                        btn.disabled = false;
+                        btn.textContent = "Reinstall";
+                    });
+                });
+
             });
             </script>
             {% endif %}
