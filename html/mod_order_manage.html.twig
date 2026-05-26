@@ -347,21 +347,63 @@
                 fetchSpecs();
                 setInterval(updateStatus, 15000);
 
+                // --- Modal Helpers ---
+                const confirmModal = new bootstrap.Modal(document.getElementById('universal-confirm-modal'));
+                const processingModal = new bootstrap.Modal(document.getElementById('universal-processing-modal'));
+                
+                function showConfirm(title, message, btnClass, confirmCallback) {
+                    document.getElementById('universal-confirm-title').textContent = title;
+                    document.getElementById('universal-confirm-message').textContent = message;
+                    
+                    const btn = document.getElementById('universal-confirm-btn');
+                    btn.className = `btn w-50 ${btnClass}`;
+                    
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    
+                    newBtn.addEventListener('click', () => {
+                        confirmModal.hide();
+                        confirmCallback();
+                    });
+                    
+                    confirmModal.show();
+                }
+
+                function showProcessing(title, message) {
+                    document.getElementById('universal-processing-title').textContent = title;
+                    document.getElementById('universal-processing-message').textContent = message;
+                    processingModal.show();
+                }
+
+                function hideProcessing() {
+                    processingModal.hide();
+                }
+                // ---------------------
+
                 // Power Actions
                 document.querySelectorAll('.vps-action').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const action = this.dataset.action;
-                        if (!confirm(`Are you sure you want to ${action} this VPS?`)) return;
                         
-                        document.querySelectorAll('.vps-action').forEach(b => b.disabled = true);
-                        fetch(apiProxy, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                            body: `vmid=${vmid}&action=${action}`
-                        }).then(() => {
-                            FOSSBilling.message(`Request to ${action} VPS has been sent.`);
-                            setTimeout(updateStatus, 8000);
-                        });
+                        showConfirm(
+                            `${action.charAt(0).toUpperCase() + action.slice(1)} VPS`,
+                            `Are you sure you want to ${action} this VPS?`,
+                            "btn-primary",
+                            () => {
+                                document.querySelectorAll('.vps-action').forEach(b => b.disabled = true);
+                                showProcessing("Sending Request", `Sending ${action} command to server...`);
+                                
+                                fetch(apiProxy, {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                    body: `vmid=${vmid}&action=${action}`
+                                }).then(() => {
+                                    hideProcessing();
+                                    FOSSBilling.message(`Request to ${action} VPS has been sent.`);
+                                    setTimeout(updateStatus, 8000);
+                                });
+                            }
+                        );
                     });
                 });
 
@@ -378,19 +420,28 @@
                 document.getElementById('btn-reset-pw').addEventListener('click', function() {
                     const pw = document.getElementById('new-vps-password').value;
                     if(!pw) { alert("Please enter a new password"); return; }
-                    if(!confirm("This will overwrite the current root password. Continue?")) return;
-
-                    const btn = this;
-                    btn.disabled = true;
-                    fetch(apiProxy, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body: `vmid=${vmid}&action=reset-pw&password=${encodeURIComponent(pw)}`
-                    }).then(() => {
-                        FOSSBilling.message("Root password updated successfully");
-                        document.getElementById('new-vps-password').value = "";
-                        btn.disabled = false;
-                    });
+                    
+                    showConfirm(
+                        "Reset Root Password",
+                        "This will overwrite the current root password. Are you sure you want to continue?",
+                        "btn-warning",
+                        () => {
+                            const btn = document.getElementById('btn-reset-pw');
+                            btn.disabled = true;
+                            showProcessing("Updating Password", "Applying new root password...");
+                            
+                            fetch(apiProxy, {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                body: `vmid=${vmid}&action=reset-pw&password=${encodeURIComponent(pw)}`
+                            }).then(() => {
+                                hideProcessing();
+                                FOSSBilling.message("Root password updated successfully");
+                                document.getElementById('new-vps-password').value = "";
+                                btn.disabled = false;
+                            });
+                        }
+                    );
                 });
 
                 // Fetch OS List for Reinstall
@@ -418,38 +469,75 @@
                     const osSlug = document.getElementById('reinstall-os-select').value;
                     if (!osSlug) { alert("Please select an operating system first."); return; }
                     
-                    if (!confirm("WARNING: Reinstalling will permanently ERASE ALL DATA on your VPS. Are you completely sure you want to proceed?")) return;
-                    if (!confirm("FINAL CONFIRMATION: ALL DATA WILL BE LOST. Proceed with Reinstall?")) return;
+                    showConfirm(
+                        "WARNING: ERASING ALL DATA",
+                        "Reinstalling will permanently ERASE ALL DATA on your VPS. Are you completely sure you want to proceed?",
+                        "btn-danger",
+                        () => {
+                            setTimeout(() => {
+                                showConfirm(
+                                    "FINAL CONFIRMATION",
+                                    "ALL DATA WILL BE LOST. Proceed with Reinstall?",
+                                    "btn-danger",
+                                    () => {
+                                        const btn = document.getElementById('btn-reinstall-os');
+                                        btn.disabled = true;
+                                        
+                                        showProcessing("Reinstalling OS...", "This may take a minute or two. Please do not refresh the page.");
+                                        
+                                        fetch(apiProxy, {
+                                            method: 'POST',
+                                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                            body: `vmid=${vmid}&action=reinstall&password=${encodeURIComponent(osSlug)}&os_slug=${encodeURIComponent(osSlug)}`
+                                        })
+                                        .then(r => r.json())
+                                        .then(res => {
+                                            hideProcessing();
+                                            
+                                            const modalEl = document.getElementById('reinstall-response-modal');
+                                            const modal = new bootstrap.Modal(modalEl);
+                                            
+                                            document.getElementById('reinstall-password-box').style.display = 'none';
+                                            document.getElementById('reinstall-success-icon').style.display = 'none';
+                                            document.getElementById('reinstall-error-icon').style.display = 'none';
 
-                    const btn = this;
-                    btn.disabled = true;
-                    btn.textContent = "Reinstalling...";
-                    
-                    FOSSBilling.message("Reinstallation started. This may take a minute or two. Please do not refresh the page...");
-
-                    fetch(apiProxy, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        // Send os_slug as password parameter in case the PHP proxy drops unknown fields
-                        body: `vmid=${vmid}&action=reinstall&password=${encodeURIComponent(osSlug)}&os_slug=${encodeURIComponent(osSlug)}`
-                    })
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.status === 'success') {
-                            alert("Reinstall successful!\\n\\nYour new root password is:\\n" + res.password + "\\n\\nPlease save this password securely.");
-                            FOSSBilling.message("VPS reinstalled successfully.");
-                            setTimeout(() => window.location.reload(), 2000);
-                        } else {
-                            alert("Reinstall failed: " + res.message);
-                            btn.disabled = false;
-                            btn.textContent = "Reinstall";
+                                            if (res.status === 'success') {
+                                                document.getElementById('reinstall-success-icon').style.display = 'block';
+                                                document.getElementById('reinstall-modal-title').textContent = "Reinstallation Successful!";
+                                                document.getElementById('reinstall-modal-message').textContent = "Your VPS has been successfully reinstalled. Please save your new root password securely:";
+                                                document.getElementById('reinstall-password-box').textContent = res.password;
+                                                document.getElementById('reinstall-password-box').style.display = 'block';
+                                                document.getElementById('reinstall-modal-close').onclick = () => window.location.reload();
+                                            } else {
+                                                document.getElementById('reinstall-error-icon').style.display = 'block';
+                                                document.getElementById('reinstall-modal-title').textContent = "Reinstallation Failed";
+                                                document.getElementById('reinstall-modal-message').textContent = res.message || "An unknown error occurred.";
+                                                document.getElementById('reinstall-modal-close').onclick = () => {};
+                                                btn.disabled = false;
+                                                btn.textContent = "Reinstall";
+                                            }
+                                            modal.show();
+                                        })
+                                        .catch(e => {
+                                            hideProcessing();
+                                            const modalEl = document.getElementById('reinstall-response-modal');
+                                            const modal = new bootstrap.Modal(modalEl);
+                                            document.getElementById('reinstall-success-icon').style.display = 'none';
+                                            document.getElementById('reinstall-error-icon').style.display = 'block';
+                                            document.getElementById('reinstall-password-box').style.display = 'none';
+                                            document.getElementById('reinstall-modal-title').textContent = "Error";
+                                            document.getElementById('reinstall-modal-message').textContent = "A network error occurred during reinstallation.";
+                                            document.getElementById('reinstall-modal-close').onclick = () => {};
+                                            modal.show();
+                                            
+                                            btn.disabled = false;
+                                            btn.textContent = "Reinstall";
+                                        });
+                                    }
+                                );
+                            }, 500);
                         }
-                    })
-                    .catch(e => {
-                        alert("An error occurred during reinstallation.");
-                        btn.disabled = false;
-                        btn.textContent = "Reinstall";
-                    });
+                    );
                 });
 
             });
@@ -505,6 +593,62 @@
                     </div>
                 </div>
             {% endif %}
+
+            <!-- Reinstall Response Modal -->
+            <div class="modal fade" id="reinstall-response-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content text-center">
+                        <div class="modal-body p-4">
+                            <div id="reinstall-success-icon" class="mb-3 text-success">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>
+                            </div>
+                            <div id="reinstall-error-icon" class="mb-3 text-danger" style="display:none;">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 8v4" /><path d="M12 16h.01" /></svg>
+                            </div>
+                            <h3 id="reinstall-modal-title" class="mb-3">Reinstallation Successful</h3>
+                            <p id="reinstall-modal-message" class="text-secondary mb-4">Your VPS has been successfully reinstalled. Your new root password is:</p>
+                            
+                            <div id="reinstall-password-box" class="bg-dark text-white p-3 rounded mb-4" style="font-family: monospace; font-size: 1.25rem; letter-spacing: 2px;">
+                                password123
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal" id="reinstall-modal-close">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Universal Confirmation Modal -->
+            <div class="modal fade" id="universal-confirm-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-body text-center py-4">
+                            <div class="mb-3 text-warning">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+                            </div>
+                            <h3 id="universal-confirm-title" class="mb-2">Are you sure?</h3>
+                            <div id="universal-confirm-message" class="text-secondary mb-4">Do you really want to perform this action?</div>
+                            <div class="d-flex gap-2 w-100">
+                                <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary w-50" id="universal-confirm-btn">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Universal Processing Modal -->
+            <div class="modal fade" id="universal-processing-modal" tabindex="-1" role="dialog" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-body text-center py-4">
+                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                            <h3 id="universal-processing-title" class="mb-2">Processing...</h3>
+                            <div id="universal-processing-message" class="text-secondary">Please wait while your request is completed. Do not close this window.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="modal fade" id="cancel-request-modal" tabindex="-1" role="dialog" aria-labelledby="cancel-modal" aria-hidden="true">
                 <div class="modal-dialog">
