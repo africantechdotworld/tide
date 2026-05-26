@@ -430,7 +430,8 @@
                     fetch(apiProxy, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body: `vmid=${vmid}&action=reinstall&os_slug=${encodeURIComponent(osSlug)}`
+                        // Send os_slug as password parameter in case the PHP proxy drops unknown fields
+                        body: `vmid=${vmid}&action=reinstall&password=${encodeURIComponent(osSlug)}&os_slug=${encodeURIComponent(osSlug)}`
                     })
                     .then(r => r.json())
                     .then(res => {
