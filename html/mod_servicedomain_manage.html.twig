@@ -143,68 +143,105 @@
                 </div>
               </div>
 
-              {% if guest.extension_is_on({"mod":"domainx"}) %}
-              <div class="card mb-4" id="dnssec">
+              {% if domainx_enabled %}
+              <div class="card mb-4 d-none" id="dnssec" data-delete-text="{{ 'Delete'|trans }}" data-delete-confirm="{{ 'Remove this DNSSEC DS record?'|trans }}" data-added-text="{{ 'DNSSEC DS record added successfully'|trans }}" data-removed-text="{{ 'DNSSEC DS record removed successfully'|trans }}">
                 <div class="card-header">
                   <div class="d-flex flex-column">
-                    <h3 class="card-title mb-1">{{ 'Add DNSSEC DS Record'|trans }}</h3>
+                    <h3 class="card-title mb-1">{{ 'DNSSEC DS Records'|trans }}</h3>
                     <div class="text-muted small">
-                      {{ 'Enter the DS record supplied by your DNS provider. The values must exactly match the DNSSEC key published by your authoritative nameservers.'|trans }}
+                      {{ 'Current DS records are read directly from the domain registry.'|trans }}
                     </div>
                   </div>
                 </div>
-                <div class="card-body">
-                    <form method="post" action="{{ 'domainx/dnssec_add'|api_url }}" {{ fb_api_form({message: 'DNSSEC DS record added successfully'|trans}) }}>
 
-                        <div class="form-group row mb-2">
-                            <label for="key_tag" class="col-md-4 col-form-label required">{{ 'Key Tag'|trans }}</label>
-                            <div class="col-md-6">
-                                <input class="form-control" type="number" name="key_tag" id="dnssec-key-tag" min="0" max="65535" step="1"  placeholder="33409" required>
-                            </div>
-                        </div>
-                        <div class="form-group row mb-2">
-                            <label for="algorithm" class="col-md-4 col-form-label required">{{ 'Algorithm'|trans }}</label>
-                            <div class="col-md-6">
-                                <select name="algorithm" data-supported="True" id="dnssec-algorithm" class="form-control form-select" required>
-                                    <option value="8">8: RSA/SHA-256</option>
-                                    <option value="13">13: ECDSA Curve P-256 with SHA-256</option>
-                                    <option value="14">14: ECDSA Curve P-384 with SHA-384</option>
-                                    <option value="15">15: Ed25519</option>
-                                    <option value="16">16: Ed448</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row mb-2">
-                            <label for="digest_type" class="col-md-4 col-form-label required">{{ 'Digest Type'|trans }}</label>
-                            <div class="col-md-6">
-                                <select name="digest_type" class="form-control form-select" id="dnssec-digest-type" required>
-                                    <option value="2">2: SHA-256</option>
-                                    <option value="4">4: SHA-384</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row mb-2">
-                            <label for="dnssec-digest" class="col-md-4 col-form-label required">{{ 'Digest'|trans }}</label>
-                            <div class="col-md-6">
-                                <input class="form-control font-monospace" type="text" name="digest" id="dnssec-digest" minlength="40" maxlength="128" pattern="[0-9A-Fa-f]{40,128}" placeholder="F4D6E26B3483C3D7B3EE17799B0570497FAF33BCB12B9B9CE573DDB491E16948" autocomplete="off" spellcheck="false" required>
-                            </div>
-                        </div>
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" id="dnssec-confirm" required>
-                            <label class="form-check-label" for="dnssec-confirm">
-                                {{ 'I confirm that DNSSEC is already enabled at the authoritative DNS provider and that these DS values are correct.'|trans }}
-                            </label>
-                        </div>
-                        <input type="hidden" name="order_id" value="{{ order.id }}">
-                        <div class="d-flex justify-content-end mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                {{ 'Add DNSSEC Record'|trans }}
-                            </button>
-                        </div>
-                    </form>
+                <div class="card-body">
+                  <div id="dnssec-empty" class="text-muted mb-4 d-none">
+                    {{ 'No DNSSEC DS records are currently configured.'|trans }}
+                  </div>
+
+                  <div id="dnssec-current" class="table-responsive mb-4 d-none">
+                    <table class="table table-vcenter">
+                      <thead>
+                        <tr>
+                          <th>{{ 'Key Tag'|trans }}</th>
+                          <th>{{ 'Algorithm'|trans }}</th>
+                          <th>{{ 'Digest Type'|trans }}</th>
+                          <th>{{ 'Digest'|trans }}</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody id="dnssec-records"></tbody>
+                    </table>
+                  </div>
+
+                  <div id="dnssec-limit" class="alert alert-info d-none">
+                    {{ 'Two DS records are configured. Remove one before adding another.'|trans }}
+                  </div>
+
+                  <form id="dnssec-add-form" class="d-none" method="post" action="{{ 'domainx/dnssec_add'|api_url }}" {{ fb_api_form({callback: 'domainxDnssecAdded'}) }}>
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+
+                    <div class="form-group row mb-2">
+                      <label for="dnssec-key-tag" class="col-md-4 col-form-label required">
+                        {{ 'Key Tag'|trans }}
+                      </label>
+                      <div class="col-md-6">
+                        <input class="form-control" type="number" name="key_tag" id="dnssec-key-tag" min="0" max="65535" step="1" placeholder="33409" required>
+                      </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                      <label for="dnssec-algorithm" class="col-md-4 col-form-label required">
+                        {{ 'Algorithm'|trans }}
+                      </label>
+                      <div class="col-md-6">
+                        <select name="algorithm" id="dnssec-algorithm" class="form-control form-select" required>
+                          <option value="8">8: RSA/SHA-256</option>
+                          <option value="13">13: ECDSA Curve P-256 with SHA-256</option>
+                          <option value="14">14: ECDSA Curve P-384 with SHA-384</option>
+                          <option value="15">15: Ed25519</option>
+                          <option value="16">16: Ed448</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                      <label for="dnssec-digest-type" class="col-md-4 col-form-label required">
+                        {{ 'Digest Type'|trans }}
+                      </label>
+                      <div class="col-md-6">
+                        <select name="digest_type" id="dnssec-digest-type" class="form-control form-select" required>
+                          <option value="2">2: SHA-256</option>
+                          <option value="4">4: SHA-384</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="form-group row mb-2">
+                      <label for="dnssec-digest" class="col-md-4 col-form-label required">
+                        {{ 'Digest'|trans }}
+                      </label>
+                      <div class="col-md-6">
+                        <input class="form-control font-monospace" type="text" name="digest" id="dnssec-digest" minlength="40" maxlength="128" pattern="[0-9A-Fa-f]{40,128}" autocomplete="off" spellcheck="false" required>
+                      </div>
+                    </div>
+
+                    <div class="form-check mt-4">
+                      <input class="form-check-input" type="checkbox" id="dnssec-confirm" required>
+                      <label class="form-check-label" for="dnssec-confirm">
+                        {{ 'I confirm that these DS values match the DNSSEC key published by the authoritative DNS provider.'|trans }}
+                      </label>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                      <button type="submit" class="btn btn-primary">
+                        {{ 'Add DNSSEC Record'|trans }}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
-              {% endif %}
+            {% endif %}
           </div>
 
           <div class="col-12 col-lg-6">
@@ -439,27 +476,136 @@ document.getElementById('domain-disable-pp').addEventListener('click', function 
     );
 });
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     {% if domainx_enabled %}
-       const dnssecTab = document.getElementById('dnssec-tab');
+    const dnssecCard = document.getElementById('dnssec');
+    const dnssecTable = document.getElementById('dnssec-current');
+    const dnssecBody = document.getElementById('dnssec-records');
+    const dnssecEmpty = document.getElementById('dnssec-empty');
+    const dnssecLimit = document.getElementById('dnssec-limit');
+    const dnssecForm = document.getElementById('dnssec-add-form');
+
+    function appendDnssecCell(row, value, className) {
+        const cell = document.createElement('td');
+
+        if (className) {
+            cell.className = className;
+        }
+
+        cell.textContent = String(value);
+        row.appendChild(cell);
+    }
+
+    function removeDnssecRecord(record, button) {
+        if (!window.confirm(dnssecCard.dataset.deleteConfirm)) {
+            return;
+        }
+
+        button.disabled = true;
 
         FOSSBilling.api.client.post(
-            'domainx/capabilities',
-            {order_id: {{ order.id }}},
-            (result) => {
-                if (
-                    result &&
-                    result.features &&
-                    result.features.dnssec &&
-                    result.features.dnssec.available
-                ) {
-                    dnssecTab.classList.remove('d-none');
-                }
+            'domainx/dnssec_update',
+            {
+                order_id: {{ order.id }},
+                command: 'rem',
+                key_tag: record.key_tag,
+                algorithm: record.algorithm,
+                digest_type: record.digest_type,
+                digest: record.digest
             },
             () => {
-               // Keep the DNSSEC tab hidden if DomainX is unavailable.
+                FOSSBilling.message(dnssecCard.dataset.removedText);
+                loadDnssecRecords();
+            },
+            (err) => {
+                button.disabled = false;
+                apiFailToast(err);
             }
         );
+    }
+
+    function renderDnssecRecords(feature) {
+        const records = Array.isArray(feature.records)
+            ? feature.records
+            : [];
+
+        const maxRecords = Number(feature.max_records || 2);
+
+        dnssecBody.replaceChildren();
+
+        records.forEach((record) => {
+            const row = document.createElement('tr');
+
+            appendDnssecCell(row, record.key_tag);
+            appendDnssecCell(row, record.algorithm);
+            appendDnssecCell(row, record.digest_type);
+            appendDnssecCell(
+                row,
+                record.digest,
+                'font-monospace small text-break'
+            );
+
+            const actions = document.createElement('td');
+            actions.className = 'text-end';
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn btn-sm btn-outline-danger';
+            button.textContent = dnssecCard.dataset.deleteText;
+            button.addEventListener('click', () => {
+                removeDnssecRecord(record, button);
+            });
+
+            actions.appendChild(button);
+            row.appendChild(actions);
+            dnssecBody.appendChild(row);
+        });
+
+        dnssecTable.classList.toggle('d-none', records.length === 0);
+        dnssecEmpty.classList.toggle('d-none', records.length !== 0);
+        dnssecForm.classList.toggle(
+            'd-none',
+            records.length >= maxRecords
+        );
+        dnssecLimit.classList.toggle(
+            'd-none',
+            records.length < maxRecords
+        );
+    }
+
+    function loadDnssecRecords() {
+        FOSSBilling.api.client.post(
+            'domainx/capabilities',
+            {
+                order_id: {{ order.id }}
+            },
+            (result) => {
+                const feature =
+                    result
+                    && result.features
+                    && result.features.dnssec;
+
+                if (!feature || !feature.available) {
+                    dnssecCard.classList.add('d-none');
+                    return;
+                }
+
+                renderDnssecRecords(feature);
+                dnssecCard.classList.remove('d-none');
+            },
+            () => {
+                dnssecCard.classList.add('d-none');
+            }
+        );
+    }
+
+    window.domainxDnssecAdded = function () {
+        FOSSBilling.message(dnssecCard.dataset.addedText);
+        dnssecForm.reset();
+        loadDnssecRecords();
+    };
+
+    loadDnssecRecords();
     {% endif %}
 });
 
