@@ -1,4 +1,5 @@
 {% if order.status == 'active' or order.status == 'failed_renew' %}
+    {% set domainx_enabled = guest.extension_is_on({"mod":"domainx"}) %}
     <link rel="stylesheet" href="{{ 'libs/intl-tel-input/dist/css/intlTelInput.min.css'|asset_url }}">
     <style>
     .iti {
@@ -146,27 +147,25 @@
               <div class="card mb-4" id="dnssec">
                 <div class="card-header">
                   <div class="d-flex flex-column">
-                    <h3 class="card-title mb-1">DNSSEC <span class="card-subtitle">Create a DS Record</span></h3>
+                    <h3 class="card-title mb-1">{{ 'Add DNSSEC DS Record'|trans }}</h3>
                     <div class="text-muted small">
-                      {{ 'Enable DNSSEC by adding DS records to improve your domain’s security.'|trans }}
+                      {{ 'Enter the DS record supplied by your DNS provider. The values must exactly match the DNSSEC key published by your authoritative nameservers.'|trans }}
                     </div>
                   </div>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="{{ 'domainx/ds_add'|api_url }}" {{ fb_api_form({message: 'DS record added'|trans}) }}>
-                        <input type="hidden" name="CSRFToken" value="{{ CSRFToken }}"/>
-                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <form method="post" action="{{ 'domainx/dnssec_add'|api_url }}" {{ fb_api_form({message: 'DNSSEC DS record added successfully'|trans}) }}>
 
                         <div class="form-group row mb-2">
-                            <label for="keytag1" class="col-md-4 col-form-label required">Key tag</label>
+                            <label for="key_tag" class="col-md-4 col-form-label required">{{ 'Key Tag'|trans }}</label>
                             <div class="col-md-6">
-                                <input name="keyTag" type="text" maxlength="65535" class="form-control" id="keytag1" required />
+                                <input class="form-control" type="number" name="key_tag" id="dnssec-key-tag" min="0" max="65535" step="1"  placeholder="33409" required>
                             </div>
                         </div>
                         <div class="form-group row mb-2">
-                            <label for="alg1" class="col-md-4 col-form-label required">Algorithm</label>
+                            <label for="algorithm" class="col-md-4 col-form-label required">{{ 'Algorithm'|trans }}</label>
                             <div class="col-md-6">
-                                <select name="alg" data-supported="True" class="form-control form-select" id="alg1" required>
+                                <select name="algorithm" data-supported="True" id="dnssec-algorithm" class="form-control form-select" required>
                                     <option value="8">8: RSA/SHA-256</option>
                                     <option value="13">13: ECDSA Curve P-256 with SHA-256</option>
                                     <option value="14">14: ECDSA Curve P-384 with SHA-384</option>
@@ -176,24 +175,30 @@
                             </div>
                         </div>
                         <div class="form-group row mb-2">
-                            <label for="digestType" class="col-md-4 col-form-label required">Digest type</label>
+                            <label for="digest_type" class="col-md-4 col-form-label required">{{ 'Digest Type'|trans }}</label>
                             <div class="col-md-6">
-                                <select name="digestType" class="form-control form-select" id="digestType" required>
+                                <select name="digest_type" class="form-control form-select" id="dnssec-digest-type" required>
                                     <option value="2">2: SHA-256</option>
                                     <option value="4">4: SHA-384</option>
                                 </select>
                             </div>
                         </div>
                         <div class="form-group row mb-2">
-                            <label for="digest1" class="col-md-4 col-form-label required">Digest</label>
+                            <label for="dnssec-digest" class="col-md-4 col-form-label required">{{ 'Digest'|trans }}</label>
                             <div class="col-md-6">
-                                <textarea name="digest" class="form-control" rows="2" id="digest1" required></textarea>
+                                <input class="form-control font-monospace" type="text" name="digest" id="dnssec-digest" minlength="40" maxlength="128" pattern="[0-9A-Fa-f]{40,128}" placeholder="F4D6E26B3483C3D7B3EE17799B0570497FAF33BCB12B9B9CE573DDB491E16948" autocomplete="off" spellcheck="false" required>
                             </div>
                         </div>
-
-                        <div class="text-center">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" id="dnssec-confirm" required>
+                            <label class="form-check-label" for="dnssec-confirm">
+                                {{ 'I confirm that DNSSEC is already enabled at the authoritative DNS provider and that these DS values are correct.'|trans }}
+                            </label>
+                        </div>
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                        <div class="d-flex justify-content-end mt-4">
                             <button type="submit" class="btn btn-primary">
-                                Create DS Record
+                                {{ 'Add DNSSEC Record'|trans }}
                             </button>
                         </div>
                     </form>
@@ -432,6 +437,30 @@ document.getElementById('domain-disable-pp').addEventListener('click', function 
         },
         (err) => apiFailToast(err)
     );
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    {% if domainx_enabled %}
+       const dnssecTab = document.getElementById('dnssec-tab');
+
+        FOSSBilling.api.client.post(
+            'domainx/capabilities',
+            {order_id: {{ order.id }}},
+            (result) => {
+                if (
+                    result &&
+                    result.features &&
+                    result.features.dnssec &&
+                    result.features.dnssec.available
+                ) {
+                    dnssecTab.classList.remove('d-none');
+                }
+            },
+            () => {
+               // Keep the DNSSEC tab hidden if DomainX is unavailable.
+            }
+        );
+    {% endif %}
 });
 
 document.getElementById('epp-code-reveal').addEventListener('click', function (event) {
