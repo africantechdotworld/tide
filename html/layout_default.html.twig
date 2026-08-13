@@ -1,17 +1,43 @@
 <!DOCTYPE html>
-<html lang="{{ guest.system_locale|replace({'_': '-'}) }}"{% if guest.system_locale in ['ar_EG', 'ar_SA', 'he_IL'] %} {{ 'dir="rtl"'| raw}}{% endif %} data-bs-theme="{{ settings.theme|default('light') }}"{% if settings.theme_color_enabled %} data-bs-theme-primary="{% if settings.theme_color == 1 %}primary{% elseif settings.theme_color == 2 %}purple{% elseif settings.theme_color == 3 %}pink{% elseif settings.theme_color == 4 %}red{% elseif settings.theme_color == 5 %}orange{% elseif settings.theme_color == 6 %}yellow{% elseif settings.theme_color == 7 %}green{% elseif settings.theme_color == 8 %}teal{% else %}indigo{% endif %}"{% endif %}>
+{% set tide_defaults = {
+    'theme': 'light',
+    'show_company_name': '0',
+    'login_page_show_remember_me': '1',
+    'hide_dashboard_breadcrumb': '1',
+    'main_menu_home': '1',
+    'main_menu_order': '1',
+    'main_menu_services': '1',
+    'main_menu_invoices': '1',
+    'main_menu_payments': '1',
+    'main_menu_support': '1',
+    'main_menu_tickets': '1',
+    'main_menu_news': '1',
+    'main_menu_kb': '1',
+    'main_menu_login': '1',
+    'main_menu_register': '1',
+    'meta_title': '',
+    'inject_head': '',
+    'footer_link_1_enabled': '0',
+    'footer_link_2_enabled': '0',
+    'footer_link_3_enabled': '0',
+    'footer_link_4_enabled': '0',
+    'footer_link_5_enabled': '0',
+    'checkout_tos': '1'
+} %}
+{% set tide_settings = tide_defaults|merge(settings) %}
+<html lang="{{ guest.system_locale|replace({'_': '-'}) }}"{% if guest.system_locale in ['ar_EG', 'ar_SA', 'he_IL'] %} {{ 'dir="rtl"'| raw}}{% endif %} data-bs-theme="{{ tide_settings.theme|default('light') }}"{% if tide_settings.theme_color_enabled %} data-bs-theme-primary="{% if tide_settings.theme_color == 1 %}primary{% elseif tide_settings.theme_color == 2 %}purple{% elseif tide_settings.theme_color == 3 %}pink{% elseif tide_settings.theme_color == 4 %}red{% elseif tide_settings.theme_color == 5 %}orange{% elseif tide_settings.theme_color == 6 %}yellow{% elseif tide_settings.theme_color == 7 %}green{% elseif tide_settings.theme_color == 8 %}teal{% else %}indigo{% endif %}"{% endif %}>
 <head>
     <meta charset="utf-8">
-    <title>{{ settings.meta_title_prefix }} {% block meta_title %}{% endblock %} {{ settings.meta_title_suffix }}</title>
+    <title>{{ tide_settings.meta_title_prefix }} {% block meta_title %}{% endblock %} {{ tide_settings.meta_title_suffix }}</title>
 
     <meta property="bb:url" content="{{ constant('SYSTEM_URL') }}">
     <meta property="bb:client_area" content="{{ '/'|url }}">
     <meta name="csrf-token" content="{{ CSRFToken }}">
 
-    <meta name="description" content="{% block meta_description %}{{ settings.meta_description }}{% endblock %}">
-    <meta name="keywords" content="{{ settings.meta_keywords }}">
-    <meta name="robots" content="{{ settings.meta_robots }}">
-    <meta name="author" content="{{ settings.meta_author }}">
+    <meta name="description" content="{% block meta_description %}{{ tide_settings.meta_description }}{% endblock %}">
+    <meta name="keywords" content="{{ tide_settings.meta_keywords }}">
+    <meta name="robots" content="{{ tide_settings.meta_robots }}">
+    <meta name="author" content="{{ tide_settings.meta_author }}">
     <meta name="generator" content="FOSSBilling">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -36,7 +62,7 @@
 
 <body class="{% block body_class %}{% endblock %}">
 {% block body %}
-{% if not client and settings.require_login %}
+{% if not client and tide_settings.require_login %}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const publicPaths = [
@@ -59,28 +85,28 @@
 {% endif %}
 {% set company = guest.system_company %}
 
-{% if settings.theme == 'dark' %}
+{% if tide_settings.theme == 'dark' %}
     {% set logo_url =  company.logo_url_dark %}
 {% else %}
     {% set logo_url =  company.logo_url %}
 {% endif %}
 <div class="page">
-      {% if settings.announcement_bar_enabled %}
-      <header class="navbar navbar-expand-md d-print-none bg-{% if settings.announcement_bar_color == 1 %}primary{% elseif settings.announcement_bar_color == 2 %}purple{% elseif settings.announcement_bar_color == 3 %}red{% elseif settings.announcement_bar_color == 4 %}orange{% elseif settings.announcement_bar_color == 5 %}yellow{% else %}green{% endif %} text-primary-fg border-bottom-0">
+      {% if tide_settings.announcement_bar_enabled %}
+      <header class="navbar navbar-expand-md d-print-none bg-{% if tide_settings.announcement_bar_color == 1 %}primary{% elseif tide_settings.announcement_bar_color == 2 %}purple{% elseif tide_settings.announcement_bar_color == 3 %}red{% elseif tide_settings.announcement_bar_color == 4 %}orange{% elseif tide_settings.announcement_bar_color == 5 %}yellow{% else %}green{% endif %} text-primary-fg border-bottom-0">
         <div class="container-xl ml-3">
-          <strong>{{ settings.announcement_bar_text }}</strong>
+          <strong>{{ tide_settings.announcement_bar_text }}</strong>
         </div>
       </header>
       {% endif %}       
-      <header class="navbar navbar-expand-md navbar-light d-print-none{% if settings.announcement_bar_enabled %} border-top-0{% endif %}">
+      <header class="navbar navbar-expand-md navbar-light d-print-none{% if tide_settings.announcement_bar_enabled %} border-top-0{% endif %}">
         <div class="container-xl">
           <button class="navbar-toggler me-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="navbar-brand p-0 me-auto">
-            {% if logo_url and settings.show_company_logo %}
+            {% if logo_url and tide_settings.show_company_logo %}
             <a class="navbar-brand" href="{{ '/'|url }}">
-              <img id="company-logo" src="{{ settings.theme == 'dark' ? company.logo_url_dark : company.logo_url }}" data-logo-light="{{ company.logo_url }}" data-logo-dark="{{ company.logo_url_dark }}" alt="{{ company.name }}" title="{{ company.name }}" class="navbar-brand-image responsive-logo">
+              <img id="company-logo" src="{{ tide_settings.theme == 'dark' ? company.logo_url_dark : company.logo_url }}" data-logo-light="{{ company.logo_url }}" data-logo-dark="{{ company.logo_url_dark }}" alt="{{ company.name }}" title="{{ company.name }}" class="navbar-brand-image responsive-logo">
             </a>
             {% else %}
             <a class="navbar-brand" href="{{ '/'|url }}">
@@ -165,7 +191,7 @@
                   </svg>
               </a>
             </div>
-            {% if settings.top_menu_signout %}
+            {% if tide_settings.top_menu_signout %}
             {% if client %}
             <div class="nav-item dropdown">
               <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
@@ -176,7 +202,7 @@
                       <div class="mt-1 small text-secondary">({{ profile.company }})</div>
                   {% else %}
                       <div>{{ profile.first_name }} {{ profile.last_name }}</div>
-                      {% if settings.sidebar_balance_enabled and client %}
+                      {% if tide_settings.sidebar_balance_enabled and client %}
                         <div class="mt-1 small text-secondary">{{ profile.balance | format_currency(profile.currency ?? default_currency) }}</div>
                       {% endif %}
                   {% endif %}
@@ -201,7 +227,7 @@
               <div class="row flex-column flex-md-row flex-fill align-items-center">
                 <div class="col">
                   <ul class="navbar-nav">
-                    {% if settings.top_menu_dashboard %}
+                    {% if tide_settings.top_menu_dashboard %}
                     <li class="nav-item{% if request._url == '/' %} active{% endif %}">
                       <a class="nav-link" href="{{ ''|url }}">
                         {% if client %}
@@ -219,7 +245,7 @@
                     </li>
                     {% endif %}
                     
-                    {% if settings.top_menu_order %}
+                    {% if tide_settings.top_menu_order %}
                     <li class="nav-item{% if request._url == '/order' or request._url starts with '/orderbutton' %} active{% endif %}">
                       <a class="nav-link" href="{{ '/order'|url }}">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
@@ -338,7 +364,7 @@
         </div>
       </header>
       <div class="page-wrapper">
-        {% if settings.show_breadcrumb and request._url != '/' %}
+        {% if tide_settings.show_breadcrumb and request._url != '/' %}
         <div class="page-header d-print-none" aria-label="Page header">
           <div class="container-xl">
             <div class="row g-2 align-items-center">
@@ -370,54 +396,54 @@
           </div>
         </div>
         
-        {% if settings.footer_enabled %}
+        {% if tide_settings.footer_enabled %}
         <footer class="footer footer-transparent d-print-none">
           <div class="container-xl">
             <div class="row text-center align-items-center flex-row-reverse">
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
-                  {% if settings.footer_link_1_enabled %}
+                  {% if tide_settings.footer_link_1_enabled %}
                   <li class="list-inline-item">
-                      {% if 'http://' in settings.footer_link_1_page or  'https://' in settings.footer_link_1_page %}
-                          <a href="{{ settings.footer_link_1_page }}" class="link-secondary">{{ settings.footer_link_1_title }}</a>
+                      {% if 'http://' in tide_settings.footer_link_1_page or  'https://' in tide_settings.footer_link_1_page %}
+                          <a href="{{ tide_settings.footer_link_1_page }}" class="link-secondary">{{ tide_settings.footer_link_1_title }}</a>
                       {% else %}
-                          <a href="{{ settings.footer_link_1_page |url }}" class="link-secondary">{{ settings.footer_link_1_title }}</a>
+                          <a href="{{ tide_settings.footer_link_1_page |url }}" class="link-secondary">{{ tide_settings.footer_link_1_title }}</a>
                       {% endif %}
                   </li>
                   {% endif %}
-                  {% if settings.footer_link_2_enabled %}
+                  {% if tide_settings.footer_link_2_enabled %}
                   <li class="list-inline-item">
-                      {% if 'http://' in settings.footer_link_2_page or  'https://' in settings.footer_link_2_page %}
-                          <a href="{{ settings.footer_link_2_page }}" class="link-secondary">{{ settings.footer_link_2_title }}</a>
+                      {% if 'http://' in tide_settings.footer_link_2_page or  'https://' in tide_settings.footer_link_2_page %}
+                          <a href="{{ tide_settings.footer_link_2_page }}" class="link-secondary">{{ tide_settings.footer_link_2_title }}</a>
                       {% else %}
-                          <a href="{{ settings.footer_link_2_page |url }}" class="link-secondary">{{ settings.footer_link_2_title }}</a>
+                          <a href="{{ tide_settings.footer_link_2_page |url }}" class="link-secondary">{{ tide_settings.footer_link_2_title }}</a>
                       {% endif %}
                   </li>
                   {% endif %}
-                  {% if settings.footer_link_3_enabled %}
+                  {% if tide_settings.footer_link_3_enabled %}
                   <li class="list-inline-item">
-                      {% if 'http://' in settings.footer_link_3_page or  'https://' in settings.footer_link_3_page %}
-                          <a href="{{ settings.footer_link_3_page }}" class="link-secondary">{{ settings.footer_link_3_title }}</a>
+                      {% if 'http://' in tide_settings.footer_link_3_page or  'https://' in tide_settings.footer_link_3_page %}
+                          <a href="{{ tide_settings.footer_link_3_page }}" class="link-secondary">{{ tide_settings.footer_link_3_title }}</a>
                       {% else %}
-                          <a href="{{ settings.footer_link_3_page |url }}" class="link-secondary">{{ settings.footer_link_3_title }}</a>
+                          <a href="{{ tide_settings.footer_link_3_page |url }}" class="link-secondary">{{ tide_settings.footer_link_3_title }}</a>
                       {% endif %}
                   </li>
                   {% endif %}
-                  {% if settings.footer_link_4_enabled %}
+                  {% if tide_settings.footer_link_4_enabled %}
                   <li class="list-inline-item">
-                      {% if 'http://' in settings.footer_link_4_page or  'https://' in settings.footer_link_4_page %}
-                          <a href="{{ settings.footer_link_4_page }}" class="link-secondary">{{ settings.footer_link_4_title }}</a>
+                      {% if 'http://' in tide_settings.footer_link_4_page or  'https://' in tide_settings.footer_link_4_page %}
+                          <a href="{{ tide_settings.footer_link_4_page }}" class="link-secondary">{{ tide_settings.footer_link_4_title }}</a>
                       {% else %}
-                          <a href="{{ settings.footer_link_4_page |url }}" class="link-secondary">{{ settings.footer_link_4_title }}</a>
+                          <a href="{{ tide_settings.footer_link_4_page |url }}" class="link-secondary">{{ tide_settings.footer_link_4_title }}</a>
                       {% endif %}
                   </li>
                   {% endif %}
-                  {% if settings.footer_link_5_enabled %}
+                  {% if tide_settings.footer_link_5_enabled %}
                   <li class="list-inline-item">
-                      {% if 'http://' in settings.footer_link_5_page or  'https://' in settings.footer_link_5_page %}
-                          <a href="{{ settings.footer_link_5_page }}" class="link-secondary">{{ settings.footer_link_5_title }}</a>
+                      {% if 'http://' in tide_settings.footer_link_5_page or  'https://' in tide_settings.footer_link_5_page %}
+                          <a href="{{ tide_settings.footer_link_5_page }}" class="link-secondary">{{ tide_settings.footer_link_5_title }}</a>
                       {% else %}
-                          <a href="{{ settings.footer_link_5_page |url }}" class="link-secondary">{{ settings.footer_link_5_title }}</a>
+                          <a href="{{ tide_settings.footer_link_5_page |url }}" class="link-secondary">{{ tide_settings.footer_link_5_title }}</a>
                       {% endif %}
                   </li>
                   {% endif %}
@@ -426,7 +452,7 @@
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item">
-                    &copy; {{ now|format_date(pattern='yyyy') }} {{ settings.footer_signature | default(company.signature) }}
+                    &copy; {{ now|format_date(pattern='yyyy') }} {{ tide_settings.footer_signature | default(company.signature) }}
                     {% if company.bank_info_pagebottom == 1 %}
                         <br/>
                         <b>{{'Payment Information'|trans}}</b> - {{'Bank Name'|trans}}: {{ company.bank_name }} | {{'BIC / SWIFT Code'|trans}}: {{ company.bic }} | {{'Account Number'|trans}}: {{ company.account_number }}
@@ -447,7 +473,7 @@
         </footer>
         {% endif %}
         <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1070;"></div>
-        {% if settings.footer_to_top_enabled %}
+        {% if tide_settings.footer_to_top_enabled %}
             <a href="#top" class="position-fixed btn btn-primary bottom-0 end-0 m-3 d-print-none">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M18 11l-6 -6" /><path d="M6 11l6 -6" /></svg> {{ 'Top'|trans }}</a>
         {% endif %}
@@ -459,8 +485,8 @@
 
         {% endblock %}
 
-        {% if settings.inject_javascript %}
-            {{ settings.inject_javascript | raw }}
+        {% if tide_settings.inject_javascript %}
+            {{ tide_settings.inject_javascript | raw }}
         {% endif %}
         {{ include('partial_pending_messages.html.twig', ignore_missing: true) }}
         {% if guest.extension_is_on({ "mod": "cookieconsent" }) %}
