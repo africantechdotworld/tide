@@ -34,7 +34,7 @@
                     {% for i, ticket in tickets.list %}
                         <div class="alert alert-info d-flex justify-content-between" role="alert">
                             <span>Ticket <strong>#{{ ticket.id }}</strong> was replied to {{ ticket.updated_at|timeago }} {{ 'ago'|trans }}.</span><a
-                                href="{{ 'support/ticket'|link }}/{{ ticket.id }}"
+                                href="{{ 'support/ticket'|url }}/{{ ticket.id }}"
                                 class="alert-link">{{ 'Reply'|trans }}</a>
                         </div>
                     {% endfor %}
@@ -45,7 +45,7 @@
         <div>
             <div class="row row-cards mb-3">
                 <div class="col-sm-6 col-lg-4">
-                  <a class="card card-link" href="{{ 'order/service'|link }}">
+                  <a class="card card-link" href="{{ 'order/service'|url }}">
                     <div class="card-body">
                       <div class="row align-items-center">
                         <div class="col-auto">
@@ -68,7 +68,7 @@
                   </a>
                 </div>
                 <div class="col-sm-6 col-lg-4">
-                  <a class="card card-link" href="{{ 'invoice'|link }}">
+                  <a class="card card-link" href="{{ 'invoice'|url }}">
                     <div class="card-body">
                       <div class="row align-items-center">
                         <div class="col-auto">
@@ -91,7 +91,7 @@
                   </a>
                 </div>
                 <div class="col-sm-6 col-lg-4">
-                  <a class="card card-link" href="{{ 'support'|link }}">
+                  <a class="card card-link" href="{{ 'support'|url }}">
                     <div class="card-body">
                       <div class="row align-items-center">
                         <div class="col-auto">
@@ -139,7 +139,7 @@
                               {{ profile.balance | money(profile.currency) }}
                             </div>
                           </div>
-                          <a href="{{ 'client/profile'|link }}" class="btn btn-outline-primary btn-sm">
+                          <a href="{{ 'client/profile'|url }}" class="btn btn-outline-primary btn-sm">
                             {{ 'Update'|trans }}
                           </a>
                         </div>
@@ -155,10 +155,10 @@
                           <div class="d-flex align-items-center justify-content-between w-100">
                             <h3 class="card-title mb-0">{{ 'Recent orders'|trans }}</h3>
                             <div class="btn-list">
-                              <a href="{{ 'order/service'|link }}" class="btn btn-sm btn-outline-secondary">
+                              <a href="{{ 'order/service'|url }}" class="btn btn-sm btn-outline-secondary">
                                 {{ 'All orders'|trans }}
                               </a>
-                              <a href="{{ 'order'|link }}" class="btn btn-sm btn-primary btn-animate-icon btn-animate-icon-rotate">
+                              <a href="{{ 'order'|url }}" class="btn btn-sm btn-primary btn-animate-icon btn-animate-icon-rotate">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
                                 {{ 'New order'|trans }}
                               </a>
@@ -168,7 +168,7 @@
                         {% if client.order_get_list({ "per_page": 5, "page": request.page, "hide_addons": 1 }).list %}
                         <div class="list-group list-group-flush">
                           {% for i, order in client.order_get_list({ "per_page": 5, "page": request.page, "hide_addons": 1 }).list %}
-                            <a href="{{ 'order/service/manage'|link }}/{{ order.id }}" class="list-group-item py-3 list-group-item-action text-reset">
+                            <a href="{{ 'order/service/manage'|url }}/{{ order.id }}" class="list-group-item py-3 list-group-item-action text-reset">
                               <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex flex-column text-truncate">
                                   <div class="d-flex align-items-center gap-2">
@@ -202,10 +202,10 @@
                           <div class="d-flex align-items-center justify-content-between w-100">
                             <h3 class="card-title mb-0">{{ 'Support tickets'|trans }}</h3>
                             <div class="btn-list">
-                              <a href="{{ 'support'|link }}" class="btn btn-sm btn-outline-secondary">
+                              <a href="{{ 'support'|url }}" class="btn btn-sm btn-outline-secondary">
                                 {{ 'All tickets'|trans }}
                               </a>
-                              <a href="{{ 'support'|link({ 'ticket': 1 }) }}" class="btn btn-sm btn-primary btn-animate-icon btn-animate-icon-rotate">
+                              <a href="{{ 'support'|url({ 'ticket': 1 }) }}" class="btn btn-sm btn-primary btn-animate-icon btn-animate-icon-rotate">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
                                 {{ 'New ticket'|trans }}
                               </a>
@@ -215,7 +215,7 @@
                         {% if client.support_ticket_get_list({ "per_page": 5 }).list %}
                         <div class="list-group list-group-flush">
                           {% for i, ticket in client.support_ticket_get_list({ "per_page": 5 }).list %}
-                            <a href="{{ 'support/ticket'|link }}/{{ ticket.id }}" class="list-group-item py-3 list-group-item-action text-reset">
+                            <a href="{{ 'support/ticket'|url }}/{{ ticket.id }}" class="list-group-item py-3 list-group-item-action text-reset">
                               <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex flex-column text-truncate">
                                   <div class="d-flex align-items-center gap-2">
