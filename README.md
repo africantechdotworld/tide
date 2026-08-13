@@ -9,14 +9,14 @@
 Tide is a client area theme for FOSSBilling. It's designed to enhance your user interface with a clean, modern aesthetic. This guide provides steps on how to install, upgrade, secure, and customize the Tide theme.
 
 <p align="center">
-  <img src="screen1.jpeg" width="48%" />
+  <img src="screen1.png" width="48%" />
   <img src="screen2.png" width="48%" />
 </p>
 
 ## Compatibility
 
-- 1.1.x → FOSSBilling 0.7.2  
-- 1.2.x → FOSSBilling 0.8.x  
+- 1.1.7 → FOSSBilling 0.7.2
+- 1.2.2 → FOSSBilling 0.8.5
 
 Install the Tide release that matches your FOSSBilling version.
 
@@ -30,7 +30,7 @@ Follow these steps to install the Tide theme:
    - If you cloned the repository, locate the main project folder.
   
 2. Inside the downloaded/cloned files, you will find a directory containing the theme files
-   (for example: `tide-main`, `tide-v1.1.0`, or similar).
+   (for example: `tide-main`, `tide-v1.2.2`, or similar).
 
 3. Rename this directory to `tide`.
 
@@ -52,7 +52,7 @@ To upgrade to a newer version of the Tide theme, perform the following:
    - If you cloned the repository, locate the main project folder.
   
 2. Inside the downloaded/cloned files, you will find a directory containing the theme files
-   (for example: `tide-main`, `tide-v1.1.0`, or similar).
+   (for example: `tide-main`, `tide-v1.2.2`, or similar).
 
 3. Rename this directory to `tide`.
 

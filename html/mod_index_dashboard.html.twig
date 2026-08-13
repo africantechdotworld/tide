@@ -3,10 +3,13 @@
 {% import "macro_functions.html.twig" as mf %}
 
 {% block meta_title %}{{ client ? 'Dashboard'|trans : 'VeltraHost — Premium VPS Hosting' }}{% endblock %}
+{% set active_menu = 'dashboard' %}
 
 {% block content %}
     {% if client %}
-        {% set profile = profile | default(client.profile_get) %}
+        {% set dashboard = client.index_get_dashboard %}
+        {% set profile = dashboard.profile %}
+        {{ render_widgets('client.index.dashboard.client.before', { 'dashboard': dashboard, 'profile': profile }) }}
         
         {% if settings.showcase_enabled %}
         <div class="row row-deck row-cards mb-3">
@@ -14,7 +17,7 @@
               <div class="card card-sm">
                  <div class="card-status-top bg-{% if settings.theme_color == 1 %}primary{% elseif settings.theme_color == 2 %}purple{% elseif settings.theme_color == 3 %}pink{% elseif settings.theme_color == 4 %}red{% elseif settings.theme_color == 5 %}orange{% elseif settings.theme_color == 6 %}yellow{% elseif settings.theme_color == 7 %}green{% elseif settings.theme_color == 8 %}teal{% else %}indigo{% endif %}"></div>
                  <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-center text-center text-md-start">
-                    <div class="mt-3">{{ settings.showcase_text |markdown }}</div>
+                    <div class="mt-3">{{ settings.showcase_text |markdown_to_html }}</div>
                     {% if (settings.showcase_button_url) and (settings.showcase_button_title) %}
                     <a class="btn btn-{% if settings.theme_color == 1 %}primary{% elseif settings.theme_color == 2 %}purple{% elseif settings.theme_color == 3 %}pink{% elseif settings.theme_color == 4 %}red{% elseif settings.theme_color == 5 %}orange{% elseif settings.theme_color == 6 %}yellow{% elseif settings.theme_color == 7 %}green{% elseif settings.theme_color == 8 %}teal{% else %}indigo{% endif %}" href="{{ settings.showcase_button_url }}">{{ settings.showcase_button_title }}</a>
                     {% endif %}
@@ -241,5 +244,6 @@
                 </div>
             </div>
         </div>
+        {{ render_widgets('client.index.dashboard.client.after', { 'dashboard': dashboard, 'profile': profile }) }}
     {% endif %}
 {% endblock %}
