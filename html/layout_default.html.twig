@@ -452,7 +452,7 @@
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item">
-                    &copy; {{ now|format_date(pattern='yyyy') }} {{ tide_settings.footer_signature | default(company.signature) }}
+                    &copy; {{ 'now'|date('Y') }} {{ tide_settings.footer_signature | default(company.signature) }}
                     {% if company.bank_info_pagebottom == 1 %}
                         <br/>
                         <b>{{'Payment Information'|trans}}</b> - {{'Bank Name'|trans}}: {{ company.bank_name }} | {{'BIC / SWIFT Code'|trans}}: {{ company.bic }} | {{'Account Number'|trans}}: {{ company.account_number }}
